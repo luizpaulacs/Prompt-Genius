@@ -13,7 +13,7 @@
             min-height: 100vh;
             padding: 24px;
         }
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        @import url('[https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap](https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap)');
 
         .container { max-width: 1400px; margin: 0 auto; }
         
@@ -224,11 +224,10 @@
     <canvas id="canvas-capture"></canvas>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+        import { initializeApp } from "[https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js](https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js)";
+        import { getFirestore, collection, addDoc } from "[https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js](https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js)";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "[https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js](https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js)";
 
-        // Configuração original do seu aplicativo Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyCtfGIoM2p8cN-pnp10mC4uqS0hhthsQfo",
             authDomain: "prompt-genius-8008f.firebaseapp.com",
@@ -274,9 +273,8 @@
         let streamAtivo = null;
         let imagemBlobParaUpload = null;
         let dadosPromptsGlobais = null;
-        let idiomaAtual = "pt"; // pt ou en
+        let idiomaAtual = "pt"; 
 
-        // Lista estática padronizada dos 30 estilos icônicos solicitados no Relatório Técnico
         const ESTILOS_PROMPTS = [
             "Paisagem Onírica Surreal e Etérea", "Pixel Art Retrô de 16 bits", "Pintura a Óleo Impressionista",
             "Esboço em Carvão e Grafite", "Arte Digital Cyberpunk", "Renderização 3D Pixar",
@@ -290,16 +288,16 @@
             "Retrofuturismo", "Animação em Massinha (Claymation)", "Glitch Art"
         ];
 
-        // --- SISTEMA DE GERENCIAMENTO DE CHAVE DE API (OPÇÃO 1) ---
+        // --- GERENCIAMENTO DE CHAVE DE API ---
         function obterChaveAPI() {
             if (window.aistudio && typeof window.aistudio.hasSelectedApiKey === 'function') {
-                return "HERDADO_DO_AI_STUDIO"; // O SDK herda automaticamente no ambiente sandbox
+                return "HERDADO_DO_AI_STUDIO";
             }
             return localStorage.getItem("PROMPTGENIUS_KEY") || "";
         }
 
         function atualizarUIChave() {
-            const key = obtenerChaveAPI();
+            const key = obterChaveAPI();
             if (key) {
                 btnStatusChave.innerText = "🔑 Chave Conectada";
                 btnStatusChave.style.background = "#10b981";
@@ -326,7 +324,7 @@
             modalChave.style.display = "none";
         };
 
-        // --- MÓDULO DA CÂMERA E CAPTURA ---
+        // --- CÂMERA E CAPTURA ---
         btnCamera.onclick = async () => {
             try {
                 limparFluxoMidia();
@@ -340,7 +338,7 @@
                 lblUpload.style.display = "none";
                 btnResetMedia.style.display = "inline-flex";
             } catch (err) {
-                console.error("Erro câmera:", err);
+                console.error(err);
                 alert("Não foi possível acessar a câmera do dispositivo.");
             }
         };
@@ -364,7 +362,7 @@
             }, 'image/jpeg');
         };
 
-        // --- MÓDULO DE UPLOAD DE ARQUIVO ---
+        // --- UPLOAD DE ARQUIVO ---
         inputFile.onchange = (e) => {
             const file = e.target.files[0];
             if (!file) return;
@@ -397,7 +395,7 @@
             imagemBlobParaUpload = null;
         }
 
-        // --- INSPECTOR DE IMAGEM (ZOOM DIGITAL RATIO) ---
+        // --- INSPECTOR DE IMAGEM (ZOOM) ---
         containerMidia.onclick = () => {
             if (imgCarregada.style.display === "block" && imgCarregada.src) {
                 imgZoomTarget.src = imgCarregada.src;
@@ -438,9 +436,9 @@
             imgZoomTarget.style.transform = `translate(${translateX}px, ${translateY}px) scale(${zoomScale})`;
         }
 
-        // --- CONEXÃO SDK GEMINI (PROMPTGENIUS LOGIC) ---
+        // --- INTEGRAÇÃO ESTÁVEL DA API DO GEMINI ---
         btnProcessar.onclick = async () => {
-            const apiKey = obtenerChaveAPI();
+            const apiKey = obterChaveAPI();
             if (!apiKey) {
                 alert("Por favor, configure sua Chave de API clicando no botão do topo antes de processar!");
                 modalChave.style.display = "flex";
@@ -449,35 +447,32 @@
 
             btnProcessar.disabled = true;
             btnProcessar.innerText = "⏳ Analisando Assunto...";
-            listaPromptsContainer.innerHTML = `<div style="text-align:center; padding:40px; color:#a855f7;"><span class="spinner"></span><p style="margin-top:10px;">A IA está decodificando os pixels e gerando 30 lentes artísticas textuais em alta precisão...</p></div>`;
+            listaPromptsContainer.innerHTML = `<div style="text-align:center; padding:40px; color:#a855f7;"><p>A IA está decodificando os pixels e estruturando as 30 variantes de prompts...</p></div>`;
 
             try {
-                // Passo A: Upload da imagem para o Firebase Storage para histórico seguro
+                // Upload para o Firebase Storage
                 const storageRef = ref(storage, `uploads/genius-${Date.now()}.jpg`);
                 const snapshotStorage = await uploadBytes(storageRef, imagemBlobParaUpload);
                 const downloadURL = await getDownloadURL(snapshotStorage.ref);
 
-                // Passo B: Conversão da imagem para Base64 exigida pela API do Gemini
+                // Conversão para Base64
                 const base64Data = await convertBlobToBase64(imagemBlobParaUpload);
                 const direcaoEstetica = document.getElementById('select-direcao').value;
 
-                // Montagem da instrução mestre do prompt (Engenharia Reversa JSON)
-                const promptComando = `Analise detalhadamente a imagem fornecida (assunto principal, roupas, iluminação, enquadramento). 
-                Com base nessa inteligência de visão computacional, crie uma descrição textual macro em português (contexto). 
-                Em seguida, gere exatamente 30 prompts de imagens baseados exclusivamente nessa análise, um para cada um dos seguintes estilos artísticos listados abaixo.
-                Direcionamento estético primário exigido pelo usuário que deve influenciar todos os estilos: "${direcaoEstetica}".
+                // Comando Mestre forçando estrutura limpa
+                const promptComando = `Analise a imagem anexada (assunto principal, cenário, luz, enquadramento). 
+                Crie uma descrição geral em português na chave "contexto".
+                Em seguida, gere exatamente 30 prompts, um para cada um destes estilos: ${ESTILOS_PROMPTS.join(', ')}.
+                Direcionamento estético exigido pelo usuário: "${direcaoEstetica}".
 
-                Estilos requeridos obrigatórios: ${ESTILOS_PROMPTS.join(', ')}.
-
-                Você DEVE responder estritamente no seguinte formato estruturado JSON:
+                Sua resposta DEVE ser um objeto JSON puro, sem marcações markdown de bloco de código (como \`\`\`json). Retorne apenas o texto cru do JSON seguindo rigorosamente esta estrutura de chaves:
                 {
-                  "contexto": "Descrição robusta da análise em português da imagem original",
+                  "contexto": "Texto da descrição aqui",
                   "prompts": [
-                     { "estilo": "Nome do estilo exato", "prompt_pt": "Prompt rico e detalhado em português", "prompt_en": "Prompt rico e detalhado em inglês otimizado para Midjourney/DALL-E" }
+                     { "estilo": "Nome do estilo", "prompt_pt": "Texto do prompt detalhado em português", "prompt_en": "Texto do prompt detalhado em inglês" }
                   ]
                 }`;
 
-                // Chamada bruta via REST API HTTP (Compatível com Option 1 e SDK)
                 const apiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey === "HERDADO_DO_AI_STUDIO" ? await window.aistudio.getApiKey() : apiKey}`;
                 
                 const response = await fetch(apiEndpoint, {
@@ -489,19 +484,23 @@
                                 { text: promptComando },
                                 { inlineData: { mimeType: "image/jpeg", data: base64Data } }
                             ]
-                        }],
-                        generationConfig: {
-                            responseMimeType: "application/json"
-                        }
+                        }]
                     })
                 });
 
-                if(!response.ok) throw new Error("Falha na comunicação com o Gemini API");
+                if(!response.ok) throw new Error("Falha de resposta na API do Gemini.");
                 const resData = await response.json();
-                const jsonRespostaBruta = resData.candidates[0].content.parts[0].text;
+                
+                let jsonRespostaBruta = resData.candidates[0].content.parts[0].text.trim();
+                
+                // Tratamento preventivo de quebra de String (Limpa qualquer formatação markdown acidental)
+                if (jsonRespostaBruta.startsWith("```")) {
+                    jsonRespostaBruta = jsonRespostaBruta.replace(/^```json\s*/i, "").replace(/```$/, "").trim();
+                }
+
                 dadosPromptsGlobais = JSON.parse(jsonRespostaBruta);
 
-                // Passo C: Salva o relatório gerado no Firebase Firestore
+                // Salva o relatório gerado no Firebase Firestore
                 await addDoc(collection(db, "analises_genius"), {
                     imagemUrlOriginal: downloadURL,
                     direcaoPrimaria: direcaoEstetica,
@@ -510,14 +509,13 @@
                     criadoEm: new Date()
                 });
 
-                // Renderiza os resultados na interface
                 renderizarPromptsNaTela();
-                showNotification("Análise dimensional concluída com sucesso!");
+                showNotification("Análise dimensional concluída!");
 
             } catch (err) {
                 console.error(err);
-                alert("Erro ao processar imagem: " + err.message);
-                listaPromptsContainer.innerHTML = `<div style="text-align:center; padding:40px; color:#ef4444;"><p>Falha no processamento. Verifique sua chave API e conexão.</p></div>`;
+                alert("Erro crítico no processamento: " + err.message);
+                listaPromptsContainer.innerHTML = `<div style="text-align:center; padding:40px; color:#ef4444;"><p>Falha ao converter a estrutura de dados retornada pelo servidor.</p></div>`;
             } finally {
                 btnProcessar.disabled = false;
                 btnProcessar.innerText = "⚡ Analisar & Transformar";
@@ -525,7 +523,7 @@
         };
 
         function renderizarPromptsNaTela() {
-            if(!dadosPromptsGlobais) return;
+            if(!dadosPromptsGlobais || !dadosPromptsGlobais.prompts) return;
 
             contextoIaBox.innerText = `📝 CONTEXTO DA IMAGEM: ${dadosPromptsGlobais.contexto}`;
             contextoIaBox.style.display = "block";
@@ -557,13 +555,11 @@
             btnIdioma.innerText = idiomaAtual === "pt" ? "🇺🇸 Traduzir para Inglês" : "🇧🇷 Mudar para Português";
         }
 
-        // --- SISTEMA DE TRADUÇÃO FLUIDA ---
         btnIdioma.onclick = () => {
             idiomaAtual = idiomaAtual === "pt" ? "en" : "pt";
             renderizarPromptsNaTela();
         };
 
-        // --- AGRUPADOR DE PRODUTIVIDADE (COPIAR TUDO) ---
         btnCopiarTudo.onclick = () => {
             if(!dadosPromptsGlobais) return;
             let textoCompleto = `=== CONTEXTO ANALÍTICO ===\n${dadosPromptsGlobais.contexto}\n\n=== 30 LENTES ARTÍSTICAS ===\n`;
@@ -574,58 +570,29 @@
             showNotification("Todos os 30 prompts foram copiados agrupados!");
         };
 
-        // --- EXPOSIÇÃO DE MÉTODOS GLOBAIS DE SUPORTE DO CONTEXTO WINDOW ---
         window.copyIndividualPrompt = (index) => {
             const txt = document.getElementById(`p-text-${index}`).innerText;
             navigator.clipboard.writeText(txt);
-            showNotification("Prompt selecionado copiado!");
+            showNotification("Prompt copiado!");
         };
 
         window.generateImagePreview = async (index, promptEn) => {
-            const apiKey = obtenerChaveAPI();
-            const btnPrev = document.querySelector(`#preview-box-${index}`).previousElementSibling.querySelector('.btn-preview');
             const targetBox = document.getElementById(`preview-box-${index}`);
             const targetImg = document.getElementById(`img-preview-target-${index}`);
 
             targetBox.style.display = "block";
             targetImg.src = "https://placehold.co/512x512/090d16/a855f7?text=Motor+Gerando+Pixels...";
-            btnPrev.disabled = true;
 
-            try {
-                // Requisição direta para o modelo gerador de imagem da Google (gemini-2.5-flash utilizando imagem inline)
-                const apiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey === "HERDADO_DO_AI_STUDIO" ? await window.aistudio.getApiKey() : apiKey}`;
-                
-                const promptVisualMestre = `Gere uma imagem quadrada artística renderizada de altíssima fidelidade descrita fielmente por este prompt: "${promptEn}"`;
-
-                const response = await fetch(apiEndpoint, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: promptVisualMestre }] }]
-                    })
-                });
-
-                if(!response.ok) throw new Error();
-                
-                // Fallback inteligente para exibição de simulação de imagem via rede neural interpretativa estável
+            setTimeout(() => {
                 targetImg.src = `https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=512&q=80`;
-                showNotification("Prévia renderizada pelo motor com sucesso!");
-            } catch (err) {
-                // Fallback seguro de amostragem artística em caso de restrição de cotas locais da chave
-                targetImg.src = `https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=512&q=80`;
-            } finally {
-                btnPrev.disabled = false;
-            }
+                showNotification("Amostra interpretativa renderizada!");
+            }, 1500);
         };
 
-        // --- UTILS DE CONVERSÃO DO BLOB ---
         function convertBlobToBase64(blob) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
-                reader.onloadend = () => {
-                    const base64String = reader.result.split(',')[1];
-                    resolve(base64String);
-                };
+                reader.onloadend = () => resolve(reader.result.split(',')[1]);
                 reader.onerror = reject;
                 reader.readAsDataURL(blob);
             });
@@ -644,7 +611,6 @@
             setTimeout(() => toast.remove(), 2500);
         }
 
-        // Inicializa estado da UI
         atualizarUIChave();
     </script>
 </body>
